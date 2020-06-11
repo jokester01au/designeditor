@@ -548,7 +548,9 @@
 	var DBCache =[];
 	//-----------------------
 	//Database grid functions
-	function niceDisplay(record, row) {
+	function formatSize(record, row) {
+		if (! record) return "";
+		
 	  var size = record;
 	  var jump = 512;
 	  if (size < jump) return size + " bytes";
@@ -558,15 +560,24 @@
 		i += 1;
 		size /= 1024
 	  }
-	  return size.toFixed(1) + ' ' + units[i - 1];
+	  return `${size.toFixed(1)} ${units[i - 1]}`;
 	} 
-			
+		
+	function flattenSizes(data) {
+		if (data.sizes) {
+			data.active_size = data.sizes.active;
+			data.external_size = data.sizes.external;
+			data.file_size = data.sizes.file;
+		}
+	}
+	
 	function initDBGrid(databases){
 		db_count = databases.length;
 		DBCache = [];
 		for(var i = 0; i < databases.length; i++){
 			$.couch.db(databases[i]).info({
-				success: function(data) {
+				success: function (data) {
+					flattenSizes(data);
 					DBCache.push(data);
 					if(db_count == DBCache.length){
 						function compare(a,b) {
@@ -579,11 +590,13 @@
 						DBCache.sort(compare);
 						
 						$('#database_grid').datagrid({
-							columns:[[
-								{field:'db_name',title:'Database Name',width:168, sortable:true, order: 'asc'},
-								{field:'disk_size',title:'Size',width:80, align:'right', formatter: niceDisplay},
-								{field:'doc_count',title:'Number of documents',width:150,align:'right'},
-								{field:'update_seq',title:'Update Sequence',width:150,align:'right'}
+							columns: [[
+								{field: 'db_name', title: 'Database Name', width: 168, sortable: true, order: 'asc'},
+								{field: 'active_size', title:'Active size', width:80, align:'right', formatter: formatSize},
+								{field: 'external_size', title:'External size', width:80, align:'right', formatter: formatSize},
+								{field: 'file_size', title:'Size on disk', width:80, align:'right', formatter: formatSize},
+								{field: 'doc_count', title: 'Number of documents', width: 150, align: 'right'},
+								{field: 'update_seq', title: 'Update Sequence', width: 150, align: 'right'}
 							]],
 							striped: true,
 							singleSelect: true,
