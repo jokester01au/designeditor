@@ -540,7 +540,7 @@
 		return function (status, errorMessage, reason, duration) {
 			logAppend(`<strong style='color: red;'>ERROR</strong> during ${action}: ${reason} (${status})`);
 			showToast(title, `Error during ${action}:<br/>${reason} (${status}).`);
-			console.log(`ERROR during ${action}.`, status, errorMessage, reason, duration + ms);
+			console.log(`ERROR during ${action}.`, status, errorMessage, reason, duration + "ms");
 		};
 	}
 	
