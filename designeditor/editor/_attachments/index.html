@@ -1374,7 +1374,8 @@
 				var leaf = row.id;
 				if( ((leaf.indexOf('-views-') != -1) && (leaf.indexOf('-views-')  + ('-views-').length) != leaf.length) ||
 				    ((leaf.indexOf('-lists-') != -1) && (leaf.indexOf('-lists-')  + ('-lists-').length) != leaf.length) ||
-				    ((leaf.indexOf('-shows-') != -1) && (leaf.indexOf('-shows-')  + ('-shows-').length) != leaf.length) ||
+					((leaf.indexOf('-lib-') != -1) && (leaf.indexOf('-lib-')  + ('-lib-').length) != leaf.length) ||
+					((leaf.indexOf('-shows-') != -1) && (leaf.indexOf('-shows-')  + ('-shows-').length) != leaf.length) ||
 				    ((leaf.indexOf('-updates-') != -1) && (leaf.indexOf('-updates-')  + ('-updates-').length) != leaf.length) ||
 				    ((leaf.indexOf('-filters-') != -1) && (leaf.indexOf('-filters-')  + ('-filters-').length) != leaf.length) ||
 				    ((leaf.indexOf('-fulltext-') != -1) && (leaf.indexOf('-fulltext-')  + ('-fulltext-').length) != leaf.length) ||
@@ -1436,6 +1437,7 @@
 								// are views
 								var node_children = [];
 								$.each(data.views, function(numeView, objView) {
+								    if (numeView === "lib") return; //lib view is a special case
 									node_children.push({
 										id: prefix+"-views-"+numeView,
 										name: numeView,
@@ -1452,6 +1454,26 @@
 									view_mr:"",
 									children: node_children
 								});
+							}
+							if (data.views && data.views.lib) {
+								var node_children = [];
+								$.each(data.views.lib, function(numeView, objView) {
+									node_children.push({
+										id: prefix+"-lib-"+numeView,
+										name: numeView,
+										language: '',
+										rev: '',
+										view_mr:''
+									});
+								});
+								ddoc_node.push({
+									id: prefix+"-lib-",
+									name: 'lib',
+									language: '',
+									rev: '',
+									view_mr:"",
+									children: node_children
+								});	
 							}
 							if (data.lists) {
 								// are lists
@@ -1971,30 +1993,35 @@
 	function saveCode(ddoc){
 		var doc_tmp = "";
 		var myWindow = getWindow(ddoc);
-		var ddoc_elements = ["-views-", "-lists-", "-shows-", "-filters-", "-fulltext-", "-updates-", "-validatedocupdate-"];
+		var ddoc_elements = ["-views-", "-lib-","-lists-", "-shows-", "-filters-", "-fulltext-", "-updates-", "-validatedocupdate-"];
 		for (ddoc_element_idx in ddoc_elements){
 			var ddoc_element = ddoc_elements[ddoc_element_idx];
 			if(ddoc.indexOf(ddoc_element) != -1){
 				doc_tmp = DDocCache["_design/" + ddoc.substring(0, ddoc.indexOf(ddoc_element))];
 				var elementName = ddoc.substring(ddoc.indexOf(ddoc_element)+ddoc_element.length);
-				if(ddoc_element == '-views-'){
-					if(myWindow.editor[0].getValue() != "") doc_tmp.views[elementName].map = myWindow.editor[0].getValue();
-					if(myWindow.editor[1].getValue() != ""){
-						 doc_tmp.views[elementName].reduce = myWindow.editor[1].getValue();
-					}else{
-						delete doc_tmp.views[elementName].reduce;
-					}
-				}else{
-					if(ddoc_element == '-fulltext-'){
-						doc_tmp.fulltext[elementName].index = myWindow.editor.getValue();
-					}else{
-						if(ddoc_element == '-validatedocupdate-'){
-							doc_tmp.validate_doc_update = myWindow.editor.getValue();
+				switch (ddoc_element) {
+					case '-views-':
+						if(myWindow.editor[0].getValue() != "") doc_tmp.views[elementName].map = myWindow.editor[0].getValue();
+						if(myWindow.editor[1].getValue() != ""){
+							 doc_tmp.views[elementName].reduce = myWindow.editor[1].getValue();
 						}else{
-							doc_tmp[ddoc_element.replace(/-/g,'')][elementName] = myWindow.editor.getValue();
-						};
-					};
-				};
+							delete doc_tmp.views[elementName].reduce;
+						}
+						break;
+					case '-fulltext-':
+						doc_tmp.fulltext[elementName].index = myWindow.editor.getValue();
+						break;
+					case '-validatedocupdate-':
+						doc_tmp.validate_doc_update = myWindow.editor.getValue();
+						break;
+					case '-lib-':
+						doc_tmp.views.lib[elementName] = myWindow.editor.getValue();
+						break;
+					default:	
+						doc_tmp[ddoc_element.replace(/-/g,'')][elementName] = myWindow.editor.getValue();
+						break
+					
+				}
 			}
 		}
 		
@@ -2088,6 +2115,12 @@
 				$('#ddoc_editor_view'+ddoc).layout('collapse','east');
 			}
 			
+		}
+		if(ddoc.indexOf('-lib-') != -1){
+			doc = DDocCache["_design/"+ddoc.substring(0,ddoc.indexOf('-lib-'))];
+			myWindow.editor.getSession().setMode("ace/mode/" + ((typeof doc.language === 'undefined')?'javascript':doc.language));
+			var libName = ddoc.substring(ddoc.indexOf('-lib-')+("-lib-".length));
+			myWindow.editor.setValue(doc.views.lib[libName]);
 		}
 		if(ddoc.indexOf('-lists-') != -1){	
 			doc = DDocCache["_design/"+ddoc.substring(0,ddoc.indexOf('-lists-'))];
