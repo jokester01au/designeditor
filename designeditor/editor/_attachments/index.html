@@ -536,6 +536,14 @@
 		});
 	}
 
+	function errorFunction(title, action = title.toLowerCase()) {
+		return function (status, errorMessage, reason, duration) {
+			logAppend(`<strong style='color: red;'>ERROR</strong> during ${action}: ${reason} (${status})`);
+			showToast(title, `Error during ${action}:<br/>${reason} (${status}).`);
+			console.log(`ERROR during ${action}.`, status, errorMessage, reason, duration + ms);
+		};
+	}
+	
 	var db_count = 0;
 	var DBCache =[];
 	//-----------------------
@@ -603,11 +611,7 @@
 													});
 													//console.log(data);
 												},
-												error: function(status) {
-													logAppend("<strong style='color: red;'>ERROR</strong> during database creation: " + JSON.stringify(status));
-													$.messager.alert('New Database','Error during new database creation!<br/>See application log for more information','error');
-													console.log(status);
-												}
+												error: errorFunction("Failed to create new database", "database creation")
 											});
 										}
 									});
@@ -642,7 +646,9 @@
 						}]);
 					}
 					//console.log(data);
-				}
+				},
+				error: errorFunction("Failed to get CouchDB info", "CouchDB connection")
+				
 			});
 		}
 	}
@@ -1161,11 +1167,7 @@
 							});
 							//console.log(data);
 						},
-						error: function(status) {
-							logAppend("<strong style='color: red;'>ERROR</strong> Delete database:"+JSON.stringify(data));
-							$.messager.alert('Delete Database','Error during database deletion!<br/>See application log for more information','error');
-							console.log(status);
-						}
+						error: errorFunction("Delete Database", "database deletion")
 					});
 				}
 			});
@@ -1184,11 +1186,7 @@
 				showToast("Document Save","Document " + db_docID + " saved successfully!");
 				//console.log(data);
 			},
-			error: function(status) {
-				logAppend("<strong style='color: red;'>ERROR</strong> Document save:"+JSON.stringify(status));
-				$.messager.alert('Document Save','Error during document save!<br/>See application log for more information','error');
-				//console.log(status);
-			}
+			error: errorFunction("Document Save")
 		});
 	};
 	
@@ -1242,11 +1240,8 @@
 							
 							//console.log(data);
 						},
-						error: function(status) {
-							logAppend("<strong style='color: red;'>ERROR</strong> Open document:"+JSON.stringify(data));
-							$.messager.alert('Open document','Error openning document!<br/>See application log for more information','error');
-							//console.log(status);
-						}
+						error: errorFunction("Open Document")
+						
 					});
 				}
 			});
@@ -1312,18 +1307,10 @@
 								
 								//console.log(data);
 							},
-							error: function(status) {
-								logAppend("<strong style='color: red;'>ERROR</strong> Open document:"+JSON.stringify(data));
-								$.messager.alert('Open document','Error openning document!<br/>See application log for more information','error');
-								console.log(status);
-							}
+							error: errorFunction("Create Document")
 						});
 					},
-					error: function(status) {
-						logAppend("<strong style='color: red;'>ERROR</strong> Creating document:"+JSON.stringify(data));
-						$.messager.alert('Open document','Error creating document!<br/>See application log for more information','error');
-						console.log(status);
-					}
+					error: error("Create Document")
 				});
 				
 			});
