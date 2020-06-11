@@ -1,3 +1,5 @@
+*** v1.1.5 branch Updated to work with CouchDB 3.1.0 !! ***
+
 designeditor
 ============
 
