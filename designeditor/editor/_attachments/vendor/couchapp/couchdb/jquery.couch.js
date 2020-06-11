@@ -107,7 +107,7 @@
      * @param {String} [value] value to be set
      */
     config: function(options, section, option, value) {
-      var req = {url: this.urlPrefix + "/_config/"};
+      var req = {url: this.urlPrefix + "/_node/_local/_config/"};
       if (section) {
         req.url += encodeURIComponent(section) + "/";
         if (option) {
